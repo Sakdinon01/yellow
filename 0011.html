@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>เลือกหมายเลข 00-99</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .number-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-top: 20px; }
+    .number-btn { padding: 10px; background: #f0f0f0; border: 1px solid #ccc; cursor: pointer; text-align: center; }
+    .selected { background-color: #ccc; pointer-events: none; }
+    .form-field { margin: 5px 0; }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>เลือกหมายเลข 00-99</h2>
+
+  <div class="form-field">
+    <label>ชื่อ: <input type="text" id="fname"></label>
+  </div>
+  <div class="form-field">
+    <label>นามสกุล: <input type="text" id="lname"></label>
+  </div>
+  <div class="form-field">
+    <label>ห้อง: <input type="text" id="room"></label>
+  </div>
+  <div class="form-field">
+    <label>เลขที่: <input type="text" id="no"></label>
+  </div>
+
+  <div class="number-grid" id="numberGrid"></div>
+
+  <button onclick="exportToExcel()">ส่งออกเป็น Excel</button>
+
+  <script>
+    const data = []; // เก็บข้อมูลผู้ใช้
+    const usedNumbers = new Set();
+
+    // สร้างปุ่มหมายเลข 00-99
+    const grid = document.getElementById('numberGrid');
+    for (let i = 0; i < 100; i++) {
+      const numStr = i.toString().padStart(2, '0');
+      const btn = document.createElement('div');
+      btn.textContent = numStr;
+      btn.className = 'number-btn';
+      btn.onclick = () => selectNumber(numStr, btn);
+      grid.appendChild(btn);
+    }
+
+    function selectNumber(number, btn) {
+      const fname = document.getElementById('fname').value.trim();
+      const lname = document.getElementById('lname').value.trim();
+      const room = document.getElementById('room').value.trim();
+      const no = document.getElementById('no').value.trim();
+
+      if (!fname || !lname || !room || !no) {
+        alert('กรุณากรอกข้อมูลให้ครบ');
+        return;
+      }
+
+      // ตรวจสอบว่าเคยเลือกแล้วหรือไม่
+      if (data.find(d => d.room === room && d.no === no)) {
+        alert('คุณได้เลือกหมายเลขไปแล้ว');
+        return;
+      }
+
+      // บันทึกข้อมูล
+      data.push({ ชื่อ: fname, นามสกุล: lname, ห้อง: room, เลขที่: no, หมายเลข: number });
+      usedNumbers.add(number);
+      btn.classList.add('selected');
+      alert(`คุณเลือกหมายเลข ${number} เรียบร้อยแล้ว`);
+    }
+
+    function exportToExcel() {
+      if (data.length === 0) {
+        alert('ยังไม่มีข้อมูลให้ส่งออก');
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "ข้อมูลผู้เลือก");
+      XLSX.writeFile(wb, "ข้อมูลการเลือกเลข.xlsx");
+    }
+  </script>
+</body>
+</html>
